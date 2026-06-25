@@ -72,7 +72,7 @@ jobs:
           cargo install cargo-ndk --version ${{ env.CARGO_NDK_VERSION }} --locked
           cargo ndk -t aarch64-linux-android \
             build --release --lib \
-            --features flutter,android \
+            --features flutter \
             --no-default-features
           mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a
           cp ./target/aarch64-linux-android/release/liblibrustdesk.so \
