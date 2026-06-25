@@ -11,7 +11,54 @@ env:
   VERSION: "1.4.8"
 
 jobs:
+  generate-bridge:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          submodules: recursive
+
+      - name: Install flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          channel: "stable"
+          flutter-version: "3.22.3"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: "rustfmt"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake curl git g++ \
+            libclang-dev llvm-dev pkg-config
+
+      - name: Generate bridge
+        run: |
+          cargo install flutter_rust_bridge_codegen --version 1.80.1 --locked
+          flutter pub get
+          ~/.cargo/bin/flutter_rust_bridge_codegen \
+            --rust-input src/flutter_ffi.rs \
+            --dart-output flutter/lib/generated_bridge.dart \
+            --class-name RustdeskImpl
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload bridge artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: bridge-artifact
+          path: |
+            flutter/lib/generated_bridge.dart
+            src/bridge_generated.rs
+            src/bridge_generated.io.rs
+
   build-android:
+    needs: [generate-bridge]
     name: Build Android APK aarch64
     runs-on: ubuntu-24.04
     steps:
@@ -31,6 +78,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Restore bridge files
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: bridge-artifact
+          path: ./
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -42,15 +95,6 @@ jobs:
             libpulse-dev libva-dev libxcb-randr0-dev libxcb-shape0-dev \
             libxcb-xfixes0-dev libxdo-dev libxfixes-dev llvm-dev nasm \
             ninja-build openjdk-17-jdk-headless pkg-config wget
-
-      - name: Download bridge files
-        run: |
-          wget -O flutter/lib/generated_bridge.dart \
-            "https://raw.githubusercontent.com/rustdesk/rustdesk/master/flutter/lib/generated_bridge.dart"
-          wget -O src/bridge_generated.rs \
-            "https://raw.githubusercontent.com/rustdesk/rustdesk/master/src/bridge_generated.rs" || true
-          wget -O src/bridge_generated.io.rs \
-            "https://raw.githubusercontent.com/rustdesk/rustdesk/master/src/bridge_generated.io.rs" || true
 
       - name: Install flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
