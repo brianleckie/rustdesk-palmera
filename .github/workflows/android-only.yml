@@ -156,6 +156,22 @@ jobs:
           cp ./target/aarch64-linux-android/release/liblibrustdesk.so \
              ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
 
+             
+      - name: Fix missing launcher icon resources
+        run: |
+          mkdir -p flutter/android/app/src/main/res/mipmap-anydpi-v26
+          cat > flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@mipmap/ic_launcher_background"/>
+              <foreground android:drawable="@mipmap/ic_launcher"/>
+          </adaptive-icon>
+          EOF
+          cp flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml \
+             flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+
+
       - name: Build APK
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
