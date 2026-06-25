@@ -96,6 +96,11 @@ jobs:
           name: bridge-artifact
           path: ./
 
+      - name: Fix RustdeskImpl instantiation
+        run: |
+          sed -i 's/RustdeskImpl(dylib)/RustdeskImplImpl(dylib)/g' \
+            flutter/lib/models/native_model.dart
+
       - name: Install dependencies
         run: |
           sudo apt-get update
