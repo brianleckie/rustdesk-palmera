@@ -23,7 +23,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: "stable"
-          flutter-version: "3.24.5"
+          flutter-version: "3.44.4"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
@@ -41,7 +41,6 @@ jobs:
       - name: Generate bridge
         run: |
           cargo install flutter_rust_bridge_codegen --version 1.80.1 --locked
-          bash .github/patches/apply_flutter_3.44_source_patches.sh || true
           cd flutter && flutter pub get
           dart run build_runner build --delete-conflicting-outputs
           cd ..
