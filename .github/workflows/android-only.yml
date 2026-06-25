@@ -80,9 +80,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Apply Flutter 3.44 source patches
-        run: |
-          bash .github/patches/apply_flutter_3.44_source_patches.sh || true
+
 
       - name: Restore bridge files
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
