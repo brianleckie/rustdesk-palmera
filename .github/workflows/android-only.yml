@@ -43,11 +43,14 @@ jobs:
             libxcb-xfixes0-dev libxdo-dev libxfixes-dev llvm-dev nasm \
             ninja-build openjdk-17-jdk-headless pkg-config wget
 
-      - name: Download bridge artifact from RustDesk nightly
+      - name: Download bridge files
         run: |
-          wget -O bridge.zip "https://github.com/rustdesk/rustdesk/releases/download/nightly/bridge-artifact.zip" || \
-          wget -O bridge.zip "https://nightly.link/rustdesk/rustdesk/workflows/flutter-build/master/bridge-artifact.zip"
-          unzip bridge.zip -d ./
+          wget -O flutter/lib/generated_bridge.dart \
+            "https://raw.githubusercontent.com/rustdesk/rustdesk/master/flutter/lib/generated_bridge.dart"
+          wget -O src/bridge_generated.rs \
+            "https://raw.githubusercontent.com/rustdesk/rustdesk/master/src/bridge_generated.rs" || true
+          wget -O src/bridge_generated.io.rs \
+            "https://raw.githubusercontent.com/rustdesk/rustdesk/master/src/bridge_generated.io.rs" || true
 
       - name: Install flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
