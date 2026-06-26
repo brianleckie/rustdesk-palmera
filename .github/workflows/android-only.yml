@@ -160,37 +160,43 @@ jobs:
 
       - name: Download missing resources from RustDesk official
         run: |
-          for size_dir in "48/mipmap-mdpi" "72/mipmap-hdpi" "96/mipmap-xhdpi" "144/mipmap-xxhdpi" "192/mipmap-xxxhdpi"; do
-            size=$(echo $size_dir | cut -d/ -f1)
-            dir=$(echo $size_dir | cut -d/ -f2)
-            mkdir -p flutter/android/app/src/main/res/$dir
-            python3 -c "
-import struct, zlib
-def png(w,h,color):
-    def chunk(t,d): c=zlib.crc32(t+d)&0xffffffff; return struct.pack('>I',len(d))+t+d+struct.pack('>I',c)
-    raw=b''.join(b'\x00'+bytes(color)*w for _ in range(h))
-    return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b'')
-open('flutter/android/app/src/main/res/$dir/ic_launcher.png','wb').write(png($size,$size,[25,118,210]))
-import shutil
-shutil.copy('flutter/android/app/src/main/res/$dir/ic_launcher.png','flutter/android/app/src/main/res/$dir/ic_launcher_round.png')
-"
-          done
-          mkdir -p flutter/android/app/src/main/res/drawable
-          python3 -c "
-import struct, zlib
-def png(w,h,color):
-    def chunk(t,d): c=zlib.crc32(t+d)&0xffffffff; return struct.pack('>I',len(d))+t+d+struct.pack('>I',c)
-    raw=b''.join(b'\x00'+bytes(color)*w for _ in range(h))
-    return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b'')
-open('flutter/android/app/src/main/res/drawable/ic_stat_logo.png','wb').write(png(24,24,[255,255,255]))
-"
+          python3 << 'PYEOF'
+          import struct, zlib, os, shutil
+
+          def make_png(w, h, color):
+              def chunk(t, d):
+                  c = zlib.crc32(t + d) & 0xffffffff
+                  return struct.pack('>I', len(d)) + t + d + struct.pack('>I', c)
+              raw = b''.join(b'\x00' + bytes(color) * w for _ in range(h))
+              return (b'\x89PNG\r\n\x1a\n' +
+                      chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)) +
+                      chunk(b'IDAT', zlib.compress(raw)) +
+                      chunk(b'IEND', b''))
+
+          sizes = [('mipmap-mdpi', 48), ('mipmap-hdpi', 72), ('mipmap-xhdpi', 96),
+                   ('mipmap-xxhdpi', 144), ('mipmap-xxxhdpi', 192)]
+
+          for dirname, size in sizes:
+              path = f'flutter/android/app/src/main/res/{dirname}'
+              os.makedirs(path, exist_ok=True)
+              launcher = f'{path}/ic_launcher.png'
+              with open(launcher, 'wb') as f:
+                  f.write(make_png(size, size, [25, 118, 210]))
+              shutil.copy(launcher, f'{path}/ic_launcher_round.png')
+
+          os.makedirs('flutter/android/app/src/main/res/drawable', exist_ok=True)
+          with open('flutter/android/app/src/main/res/drawable/ic_stat_logo.png', 'wb') as f:
+              f.write(make_png(24, 24, [255, 255, 255]))
+
+          PYEOF
+
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
           sed -i \
             -e 's/\.setDefaults(Notification\.DEFAULT_ALL)//' \
             -e 's/\.setAutoCancel([^)]*)//' \
             flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainService.kt
-
+            
       - name: Build APK
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
