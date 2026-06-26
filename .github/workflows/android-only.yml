@@ -111,7 +111,7 @@ jobs:
             libgstreamer-plugins-base1.0-dev libgtk-3-dev libpam0g-dev \
             libpulse-dev libva-dev libxcb-randr0-dev libxcb-shape0-dev \
             libxcb-xfixes0-dev libxdo-dev libxfixes-dev llvm-dev nasm \
-            ninja-build openjdk-17-jdk-headless pkg-config wget
+            ninja-build openjdk-17-jdk-headless pkg-config wget imagemagick
 
       - name: Install flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
@@ -156,29 +156,27 @@ jobs:
           cp ./target/aarch64-linux-android/release/liblibrustdesk.so \
              ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
 
-             
-      - name: Fix missing launcher icon resources
+      - name: Fix missing resources
         run: |
-
-          sudo apt-get install -y imagemagick
-          
           for dir_size in "mipmap-mdpi:48" "mipmap-hdpi:72" "mipmap-xhdpi:96" "mipmap-xxhdpi:144" "mipmap-xxxhdpi:192"; do
             dir=$(echo $dir_size | cut -d: -f1)
             size=$(echo $dir_size | cut -d: -f2)
             mkdir -p flutter/android/app/src/main/res/$dir
             convert -size ${size}x${size} xc:#1976D2 \
-              -fill white -font DejaVu-Sans -pointsize $((size/3)) \
-              -gravity center -annotate 0 "RD" \
               flutter/android/app/src/main/res/$dir/ic_launcher.png
             cp flutter/android/app/src/main/res/$dir/ic_launcher.png \
                flutter/android/app/src/main/res/$dir/ic_launcher_round.png
           done
-          
-          # Borrar los XMLs que referencian recursos inexistentes
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          mkdir -p flutter/android/app/src/main/res/drawable
+          convert -size 24x24 xc:#1976D2 \
+            flutter/android/app/src/main/res/drawable/ic_stat_logo.png
 
-
+      - name: Fix Kotlin setDefaults reference
+        run: |
+          sed -i 's/\.setDefaults(Notification\.DEFAULT_ALL)//' \
+            flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainService.kt
 
       - name: Build APK
         env:
