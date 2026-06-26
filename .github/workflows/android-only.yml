@@ -184,17 +184,18 @@ jobs:
                   f.write(make_png(size, size, [25, 118, 210]))
               shutil.copy(launcher, f'{path}/ic_launcher_round.png')
 
-          os.makedirs('flutter/android/app/src/main/res/drawable', exist_ok=True)
-          with open('flutter/android/app/src/main/res/drawable/ic_stat_logo.png', 'wb') as f:
-              f.write(make_png(24, 24, [255, 255, 255]))
-
           PYEOF
 
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+      - name: Fix Kotlin resources
+        run: |
           sed -i \
+            -e 's/R\.mipmap\.ic_stat_logo/R.mipmap.ic_launcher/g' \
             -e 's/\.setDefaults(Notification\.DEFAULT_ALL)//' \
-            -e 's/\.setAutoCancel([^)]*)//' \
+            -e 's/\.setAutoCancel(true)//' \
+            -e 's/\.setPriority(NotificationCompat\.PRIORITY_DEFAULT)//' \
             flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainService.kt
             
       - name: Build APK
