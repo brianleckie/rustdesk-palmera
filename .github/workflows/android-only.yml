@@ -18,6 +18,8 @@ env:
   NDK_VERSION: "r28c"
   VERSION: "1.4.8"
 
+
+
 jobs:
   generate-bridge:
     runs-on: ubuntu-22.04
