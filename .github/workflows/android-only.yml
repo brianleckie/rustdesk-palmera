@@ -173,9 +173,12 @@ jobs:
           convert -size 24x24 xc:#1976D2 \
             flutter/android/app/src/main/res/drawable/ic_stat_logo.png
 
-      - name: Fix Kotlin setDefaults reference
+      - name: Fix Kotlin notification references
         run: |
-          sed -i 's/\.setDefaults(Notification\.DEFAULT_ALL)//' \
+          sed -i \
+            -e 's/\.setDefaults(Notification\.DEFAULT_ALL)//' \
+            -e 's/\.setAutoCancel([^)]*)//' \
+            -e 's/R\.drawable\.ic_stat_logo/android.R.drawable.ic_menu_compass/g' \
             flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainService.kt
 
       - name: Build APK
