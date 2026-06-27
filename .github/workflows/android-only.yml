@@ -158,63 +158,25 @@ jobs:
           cp ./target/aarch64-linux-android/release/liblibrustdesk.so \
              ./flutter/android/app/src/main/jniLibs/arm64-v8a/librustdesk.so
 
-      - name: Generate launcher icons
-        run: |
-          cd flutter
-          cat >> pubspec.yaml << 'EOF'
-
-          flutter_launcher_icons:
-          android: true
-          ios: false
-          image_path: "assets/icon/icon.png"
-          min_sdk_android: 21
-            EOF
-              dart run flutter_launcher_icons
-
-      - name: Generate launcher icons
-        run: |
-          cd flutter
-          cat >> pubspec.yaml << 'EOF'
-
-            flutter_launcher_icons:
-              android: true
-              ios: false
-              image_path: "assets/icon/icon.png"
-              min_sdk_android: 21
-            EOF
-                      dart run flutter_launcher_icons
+      
 
       - name: Download missing resources from RustDesk official
         run: |
-          python3 << 'PYEOF'
-          import struct, zlib, os, shutil
-
-          def make_png(w, h, color):
-              def chunk(t, d):
-                  c = zlib.crc32(t + d) & 0xffffffff
-                  return struct.pack('>I', len(d)) + t + d + struct.pack('>I', c)
-              raw = b''.join(b'\x00' + bytes(color) * w for _ in range(h))
-              return (b'\x89PNG\r\n\x1a\n' +
-                      chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)) +
-                      chunk(b'IDAT', zlib.compress(raw)) +
-                      chunk(b'IEND', b''))
-
-          sizes = [('mipmap-mdpi', 48), ('mipmap-hdpi', 72), ('mipmap-xhdpi', 96),
-                   ('mipmap-xxhdpi', 144), ('mipmap-xxxhdpi', 192)]
-
-          for dirname, size in sizes:
-              path = f'flutter/android/app/src/main/res/{dirname}'
-              os.makedirs(path, exist_ok=True)
-              launcher = f'{path}/ic_launcher.png'
-              with open(launcher, 'wb') as f:
-                  f.write(make_png(size, size, [25, 118, 210]))
-              shutil.copy(launcher, f'{path}/ic_launcher_round.png')
-
-          PYEOF
-
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
           rm -f flutter/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
 
+
+      - name: Generate launcher icons
+        run: |
+          cd flutter
+          echo '' >> pubspec.yaml
+          echo 'flutter_launcher_icons:' >> pubspec.yaml
+          echo '  android: true' >> pubspec.yaml
+          echo '  ios: false' >> pubspec.yaml
+          echo '  image_path: "assets/icon/icon.png"' >> pubspec.yaml
+          echo '  min_sdk_android: 21' >> pubspec.yaml
+          dart run flutter_launcher_icons
+          
       - name: Fix Kotlin resources
         run: |
           sed -i \
