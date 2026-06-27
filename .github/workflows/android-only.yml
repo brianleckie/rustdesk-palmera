@@ -169,13 +169,15 @@ jobs:
       - name: Generate launcher icons
         run: |
           cd flutter
+          # Eliminar configuracion vieja de flutter_icons
+          sed -i '/flutter_icons:/,/^[^ ]/{ /flutter_icons:/d; /^ /d }' pubspec.yaml
+          # Agregar configuracion nueva
           echo '' >> pubspec.yaml
           echo 'flutter_launcher_icons:' >> pubspec.yaml
           echo '  android: true' >> pubspec.yaml
           echo '  ios: false' >> pubspec.yaml
           echo '  image_path: "assets/icon/icon.png"' >> pubspec.yaml
           echo '  min_sdk_android: 21' >> pubspec.yaml
-          ls -la assets/icon/ || echo "carpeta no encontrada"
           dart run flutter_launcher_icons
           
       - name: Fix Kotlin resources
