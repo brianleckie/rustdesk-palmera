@@ -198,7 +198,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           export PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
-          echo "$KEYSTORE_BASE64" | base64 -d > /tmp/bm-release.keystore
+          echo "$KEYSTORE_BASE64" | tr -d '\n\r ' | base64 -d > /tmp/bm-release.keystore
           sed -i "s/org.gradle.jvmargs=-Xmx1024M/org.gradle.jvmargs=-Xmx2g/g" \
             ./flutter/android/gradle.properties
           mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a
